@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:ital,wght@1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Enterprise Security Theme - Light Professional */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 10%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 222 47% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 10%;
+
+    --primary: 199 89% 38%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 20% 94%;
+    --secondary-foreground: 222 47% 20%;
+
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 20% 45%;
+
+    --accent: 173 60% 35%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 38 92% 45%;
+    --warning-foreground: 0 0% 100%;
+
+    --success: 142 60% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 210 20% 86%;
+    --input: 210 20% 92%;
+    --ring: 199 89% 38%;
+
+    --radius: 0.5rem;
+
+    /* Security-specific tokens */
+    --security-high: 0 72% 51%;
+    --security-medium: 38 92% 50%;
+    --security-low: 142 71% 45%;
+    --security-info: 199 89% 48%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(199, 89%, 38%) 0%, hsl(173, 60%, 35%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 99%) 0%, hsl(0, 0%, 97%) 100%);
+    --gradient-security: linear-gradient(135deg, hsl(210, 20%, 97%) 0%, hsl(0, 0%, 98%) 100%);
+
+    /* Shadows */
+    --shadow-glow: 0 0 20px hsl(199 89% 38% / 0.12);
+    --shadow-card: 0 4px 24px hsl(210 20% 50% / 0.12);
+
+    --sidebar-background: 210 20% 97%;
+    --sidebar-foreground: 222 47% 15%;
+    --sidebar-primary: 199 89% 38%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 92%;
+    --sidebar-accent-foreground: 222 47% 15%;
+    --sidebar-border: 210 20% 86%;
+    --sidebar-ring: 199 89% 38%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 20% 95%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+
+  code, pre {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+}
+
+@layer components {
+  .security-card {
+    @apply bg-card border border-border rounded-lg p-6 shadow-lg;
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .security-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .security-badge-high {
+    @apply bg-destructive/20 text-destructive border border-destructive/30;
+  }
+
+  .security-badge-medium {
+    @apply bg-warning/20 text-warning border border-warning/30;
+  }
+
+  .security-badge-low {
+    @apply bg-success/20 text-success border border-success/30;
+  }
+
+  .config-section {
+    @apply border border-border rounded-lg overflow-hidden;
+    background: var(--gradient-security);
+  }
+
+  .config-header {
+    @apply flex items-center justify-between px-4 py-3 bg-secondary/50 border-b border-border;
+  }
+
+  .tooltip-trigger {
+    @apply cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-muted text-muted-foreground text-xs hover:bg-primary/20 hover:text-primary transition-colors;
+  }
+
+  .glow-effect {
+    box-shadow: var(--shadow-glow);
+  }
+}
+
+@layer utilities {
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 5px hsl(199 89% 48% / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 20px hsl(199 89% 48% / 0.5);
+    }
+  }
+
+  .security-gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
