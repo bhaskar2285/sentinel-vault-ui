@@ -58,12 +58,28 @@ export interface HsmNode {
   direction: 'OUTBOUND' | 'INBOUND';
   enabled: boolean;
   health: 'UNKNOWN' | 'UP' | 'DOWN' | 'DRAINING';
+  lastSeen: string | null;
+}
+
+export interface NodeRequest {
+  poolId?: number;
+  vendor?: string;
+  host: string;
+  port: number;
+  weight?: number;
+  direction?: string;
+  enabled?: boolean;
 }
 
 export const fleetApi = {
-  listPools: () => api.get<Pool[]>('/pools').then((r) => r.data),
-  listNodes: () => api.get<HsmNode[]>('/hsms').then((r) => r.data),
-  drainNode: (id: number) => api.post(`/hsms/${id}/drain`).then((r) => r.data),
+  listPools:   () => api.get<Pool[]>('/pools').then((r) => r.data),
+  listNodes:   () => api.get<HsmNode[]>('/hsms').then((r) => r.data),
+  createNode:  (body: NodeRequest) => api.post<HsmNode>('/hsms', body).then((r) => r.data),
+  updateNode:  (id: number, body: Partial<NodeRequest>) => api.put<HsmNode>(`/hsms/${id}`, body).then((r) => r.data),
+  deleteNode:  (id: number) => api.delete(`/hsms/${id}`),
+  enableNode:  (id: number) => api.post<HsmNode>(`/hsms/${id}/enable`).then((r) => r.data),
+  disableNode: (id: number) => api.post<HsmNode>(`/hsms/${id}/disable`).then((r) => r.data),
+  drainNode:   (id: number) => api.post<HsmNode>(`/hsms/${id}/drain`).then((r) => r.data),
 };
 
 export interface AuditEntry {

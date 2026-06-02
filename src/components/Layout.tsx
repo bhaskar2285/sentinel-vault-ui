@@ -50,7 +50,7 @@ const navSections: NavSection[] = [
     items: [
       { to: '/wizard',  label: 'Walkthrough', code: 'CHAIN', icon: Play },
       { to: '/crypto',  label: 'Encrypt/Decrypt', code: 'M0–M3', icon: Cpu },
-      { to: '/emv',     label: 'EMV Ops',         code: 'EMV',   icon: CreditCard },
+      { to: '/emv',     label: 'HSM Operations',  code: 'HSM',   icon: CreditCard },
       { to: '/console', label: 'Raw Wire',    icon: Terminal },
     ],
   },
