@@ -358,6 +358,7 @@ function ArqcTab({ symKeys }: { symKeys: KeySummary[] }) {
 // ── PIN Generate (JA/JB) ─────────────────────────────────────────────────
 
 function PinGenTab() {
+  const [pan, setPan] = useState('');
   const [pinLen, setPinLen] = useState('04');
   const [result, setResult] = useState<{ pinLen: string; pinUnderLmk: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -365,9 +366,10 @@ function PinGenTab() {
   const run = async () => {
     const n = parseInt(pinLen);
     if (isNaN(n) || n < 4 || n > 12) return toast.error('PIN length must be 4–12');
+    if (!pan) return toast.error('PAN required');
     setBusy(true);
     try {
-      const r = await api.post('/crypto/pin/generate', { pinLen: String(n).padStart(2, '0') }).then(x => x.data);
+      const r = await api.post('/crypto/pin/generate', { pan, pinLen: String(n).padStart(2, '0') }).then(x => x.data);
       if (r.status === 'OK') { setResult({ pinLen: r.pinLen, pinUnderLmk: r.pinUnderLmk }); toast.success('PIN generated'); }
       else toast.error(`${r.errCode}: ${r.errText}`);
     } catch (e: any) { toast.error(e?.response?.data?.message ?? e?.message ?? 'Failed'); }
@@ -377,15 +379,18 @@ function PinGenTab() {
   return (
     <Card><CardHeader>
       <CardTitle className="text-base">Generate Random PIN — JA/JB</CardTitle>
-      <CardDescription>Generate a random PIN of specified length, returned encrypted under LMK. Use the PIN-under-LMK as input to PVV Generate or PIN-to-ZPK operations.</CardDescription>
+      <CardDescription>Generate a random PIN for an account, returned encrypted under LMK. Use the PIN-under-LMK as input to PVV Generate or IBM Offset operations.</CardDescription>
     </CardHeader><CardContent className="space-y-4">
-      <Field label="PIN Length (4–12)" id="pg-len" value={pinLen} onChange={setPinLen} placeholder="04" hint="Number of PIN digits to generate" />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="PAN (full)" id="pg-pan" value={pan} onChange={setPan} placeholder="4111111111111111" hint="12 rightmost excl. check digit extracted automatically" />
+        <Field label="PIN Length (4–12)" id="pg-len" value={pinLen} onChange={setPinLen} placeholder="04" hint="Number of PIN digits to generate" />
+      </div>
       <Button onClick={run} disabled={busy} className="w-full sm:w-auto">
         {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{busy ? 'Generating…' : 'Generate PIN'}
       </Button>
       {result && <>
         <ResultBox label="PIN Length" value={result.pinLen} />
-        <ResultBox label="PIN under LMK (16 hex)" value={result.pinUnderLmk} />
+        <ResultBox label="PIN under LMK" value={result.pinUnderLmk} />
       </>}
     </CardContent></Card>
   );
@@ -403,7 +408,7 @@ function PvvGenTab({ symKeys }: { symKeys: KeySummary[] }) {
 
   const run = async () => {
     if (!pvkId) return toast.error('Pick PVK');
-    if (!/^[0-9A-Fa-f]{16}$/.test(pinUnderLmk)) return toast.error('PIN-under-LMK must be 16 hex chars');
+    if (!pinUnderLmk) return toast.error('PIN-under-LMK required');
     setBusy(true);
     try {
       const r = await api.post('/crypto/pin/pvv', { pvkKeyId: pvkId, pan, pvki, pinUnderLmk }).then(x => x.data);
@@ -423,7 +428,7 @@ function PvvGenTab({ symKeys }: { symKeys: KeySummary[] }) {
         <div className="col-span-2"><Field label="PAN (full)" id="pvv-pan" value={pan} onChange={setPan} placeholder="4111111111111111" hint="Full PAN — rightmost 12 excl. check digit extracted automatically" /></div>
         <Field label="PVKI (0–6)" id="pvv-pvki" value={pvki} onChange={setPvki} placeholder="1" hint="PIN Verification Key Index" />
       </div>
-      <Field label="PIN under LMK (16 hex)" id="pvv-pul" value={pinUnderLmk} onChange={setPinUnderLmk} placeholder="A1B2C3D4E5F60708A1B2C3D4E5F60708" hint="Output of Generate PIN (JA) or PIN Translate to LMK" />
+      <Field label="PIN under LMK" id="pvv-pul" value={pinUnderLmk} onChange={setPinUnderLmk} placeholder="A1B2C3D4E5F60708A1B2C3D4E5F60708" hint="Output of Generate PIN (JA) or PIN Translate to LMK" />
       <Button onClick={run} disabled={busy || !pvkId} className="w-full sm:w-auto">
         {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{busy ? 'Generating…' : 'Generate PVV'}
       </Button>
@@ -445,7 +450,7 @@ function IbmOffsetTab({ symKeys }: { symKeys: KeySummary[] }) {
 
   const run = async () => {
     if (!pvkId) return toast.error('Pick PVK');
-    if (!/^[0-9A-Fa-f]{16}$/.test(pinUnderLmk)) return toast.error('PIN-under-LMK must be 16 hex chars');
+    if (!pinUnderLmk) return toast.error('PIN-under-LMK required');
     setBusy(true);
     try {
       const r = await api.post('/crypto/pin/ibm-offset', { pvkKeyId: pvkId, pinUnderLmk, pan, decimTable, checkLen }).then(x => x.data);
@@ -461,7 +466,7 @@ function IbmOffsetTab({ symKeys }: { symKeys: KeySummary[] }) {
       <CardDescription>Generate an IBM 3624 PIN offset from a PIN-under-LMK and PVK. The offset is stored and later used to verify the cardholder PIN.</CardDescription>
     </CardHeader><CardContent className="space-y-4">
       <div className="space-y-1.5"><Label>PVK (PIN Verification Key)</Label><KeySel value={pvkId} onChange={setPvkId} keys={symKeys} neededTypes={['PVK','ZPK','001']} /></div>
-      <Field label="PIN under LMK (16 hex)" id="off-pul" value={pinUnderLmk} onChange={setPinUnderLmk} placeholder="A1B2C3D4E5F60708..." />
+      <Field label="PIN under LMK" id="off-pul" value={pinUnderLmk} onChange={setPinUnderLmk} placeholder="A1B2C3D4E5F60708..." />
       <div className="grid grid-cols-2 gap-3">
         <Field label="PAN (full)" id="off-pan" value={pan} onChange={setPan} placeholder="4111111111111111" />
         <Field label="Check Length" id="off-cl" value={checkLen} onChange={setCheckLen} placeholder="4" hint="1–12 digits to verify" />
@@ -570,20 +575,20 @@ function PinTranslateZpkTab({ symKeys }: { symKeys: KeySummary[] }) {
 
 // ── Clear PIN Encrypt (BA/BB) ─────────────────────────────────────────────
 
-function ClearPinEncryptTab({ symKeys }: { symKeys: KeySummary[] }) {
-  const [zpkId, setZpkId] = useState('');
+function ClearPinEncryptTab() {
   const [clearPin, setClearPin] = useState('');
   const [pan, setPan] = useState('');
+  const [maxPinLen, setMaxPinLen] = useState('12');
   const [result, setResult] = useState('');
   const [busy, setBusy] = useState(false);
 
   const run = async () => {
-    if (!zpkId) return toast.error('Pick ZPK');
     if (!/^\d{4,12}$/.test(clearPin)) return toast.error('PIN must be 4–12 decimal digits');
+    if (!pan) return toast.error('PAN required');
     setBusy(true);
     try {
-      const r = await api.post('/crypto/pin/encrypt-clear', { clearPin, zpkKeyId: zpkId, pan }).then(x => x.data);
-      if (r.status === 'OK') { setResult(r.translatedPinBlock); toast.success('PIN block generated'); }
+      const r = await api.post('/crypto/pin/encrypt-clear', { clearPin, pan, maxPinLen }).then(x => x.data);
+      if (r.status === 'OK') { setResult(r.pinUnderLmk); toast.success('PIN encrypted under LMK'); }
       else toast.error(`${r.errCode}: ${r.errText}`);
     } catch (e: any) { toast.error(e?.response?.data?.message ?? e?.message ?? 'Failed'); }
     finally { setBusy(false); }
@@ -592,17 +597,17 @@ function ClearPinEncryptTab({ symKeys }: { symKeys: KeySummary[] }) {
   return (
     <Card><CardHeader>
       <CardTitle className="text-base">Encrypt Clear PIN — BA/BB</CardTitle>
-      <CardDescription>Encrypt a clear PIN under a ZPK to produce a PIN block. Useful for testing and PIN mailer generation. Never expose clear PINs in production.</CardDescription>
+      <CardDescription>Encrypt a clear PIN directly under the LMK — no ZPK and no PIN block. The PIN-under-LMK output feeds PVV/offset generation and PIN translate. Never expose clear PINs in production.</CardDescription>
     </CardHeader><CardContent className="space-y-4">
-      <div className="space-y-1.5"><Label>ZPK</Label><KeySel value={zpkId} onChange={setZpkId} keys={symKeys} neededTypes={['ZPK','001']} /></div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <Field label="Clear PIN (4–12 digits)" id="ba-pin" value={clearPin} onChange={setClearPin} placeholder="1234" />
-        <Field label="PAN (12 digits)" id="ba-pan" value={pan} onChange={setPan} placeholder="123456789012" hint="12 rightmost excl. check digit" />
+        <Field label="Max PIN Length" id="ba-mpl" value={maxPinLen} onChange={setMaxPinLen} placeholder="12" hint="HSM PIN Length setting (5–13)" />
+        <Field label="PAN (full)" id="ba-pan" value={pan} onChange={setPan} placeholder="4111111111111111" hint="12 rightmost excl. check digit extracted automatically" />
       </div>
-      <Button onClick={run} disabled={busy || !zpkId} className="w-full sm:w-auto">
+      <Button onClick={run} disabled={busy} className="w-full sm:w-auto">
         {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{busy ? 'Encrypting…' : 'Encrypt Clear PIN'}
       </Button>
-      <ResultBox label="PIN Block (16 hex, under ZPK)" value={result} />
+      <ResultBox label="PIN under LMK" value={result} />
     </CardContent></Card>
   );
 }
@@ -703,7 +708,7 @@ function PinToLmkTab({ symKeys }: { symKeys: KeySummary[] }) {
       </Button>
       {result && <>
         <ResultBox label="PIN Length" value={result.pinLen} />
-        <ResultBox label="PIN under LMK (16 hex)" value={result.pinUnderLmk} />
+        <ResultBox label="PIN under LMK" value={result.pinUnderLmk} />
       </>}
     </CardContent></Card>
   );
@@ -721,7 +726,7 @@ function PinFromLmkTab({ symKeys }: { symKeys: KeySummary[] }) {
 
   const run = async () => {
     if (!zpkId) return toast.error('Pick ZPK');
-    if (!/^[0-9A-Fa-f]{16}$/.test(pinUnderLmk)) return toast.error('PIN-under-LMK must be 16 hex chars');
+    if (!pinUnderLmk) return toast.error('PIN-under-LMK required');
     setBusy(true);
     try {
       const r = await api.post('/crypto/pin/from-lmk', { pinLen: String(parseInt(pinLen)).padStart(2,'0'), pinUnderLmk, zpkKeyId: zpkId, pan }).then(x => x.data);
@@ -739,7 +744,7 @@ function PinFromLmkTab({ symKeys }: { symKeys: KeySummary[] }) {
       <div className="space-y-1.5"><Label>ZPK</Label><KeySel value={zpkId} onChange={setZpkId} keys={symKeys} neededTypes={['ZPK','001']} /></div>
       <div className="grid grid-cols-3 gap-3">
         <Field label="PIN Length" id="jg-len" value={pinLen} onChange={setPinLen} placeholder="04" />
-        <div className="col-span-2"><Field label="PIN under LMK (16 hex)" id="jg-pul" value={pinUnderLmk} onChange={setPinUnderLmk} placeholder="A1B2C3D4..." /></div>
+        <div className="col-span-2"><Field label="PIN under LMK" id="jg-pul" value={pinUnderLmk} onChange={setPinUnderLmk} placeholder="A1B2C3D4..." /></div>
       </div>
       <Field label="PAN (12 digits)" id="jg-pan" value={pan} onChange={setPan} placeholder="123456789012" />
       <Button onClick={run} disabled={busy || !zpkId} className="w-full sm:w-auto">
@@ -1644,7 +1649,7 @@ export default function EmvOps() {
           <TabsContent value="verify-ich-visa" className="mt-4"><InterchangePinVerifyVisaTab symKeys={symKeys} /></TabsContent>
           <TabsContent value="xlate-tpk"      className="mt-4"><PinTranslateTab symKeys={symKeys} /></TabsContent>
           <TabsContent value="xlate-zpk"      className="mt-4"><PinTranslateZpkTab symKeys={symKeys} /></TabsContent>
-          <TabsContent value="clear-enc"      className="mt-4"><ClearPinEncryptTab symKeys={symKeys} /></TabsContent>
+          <TabsContent value="clear-enc"      className="mt-4"><ClearPinEncryptTab /></TabsContent>
           <TabsContent value="to-lmk"         className="mt-4"><PinToLmkTab symKeys={symKeys} /></TabsContent>
           <TabsContent value="from-lmk"       className="mt-4"><PinFromLmkTab symKeys={symKeys} /></TabsContent>
         </Tabs>
