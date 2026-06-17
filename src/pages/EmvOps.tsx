@@ -578,7 +578,7 @@ function PinTranslateZpkTab({ symKeys }: { symKeys: KeySummary[] }) {
 function ClearPinEncryptTab() {
   const [clearPin, setClearPin] = useState('');
   const [pan, setPan] = useState('');
-  const [maxPinLen, setMaxPinLen] = useState('12');
+  const [maxPinLen, setMaxPinLen] = useState('13');
   const [result, setResult] = useState('');
   const [busy, setBusy] = useState(false);
 
