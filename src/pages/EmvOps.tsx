@@ -84,7 +84,7 @@ function PinTranslateTab({ symKeys }: { symKeys: KeySummary[] }) {
   const [tpkId, setTpkId] = useState('');
   const [zpkId, setZpkId] = useState('');
   const [pinBlock, setPinBlock] = useState('');
-  const [pan, setPan] = useState('');
+  const [pan, setPan] = useState('400000123456');
   const [result, setResult] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -128,7 +128,7 @@ function PinVerifyTab({ symKeys }: { symKeys: KeySummary[] }) {
   const [tpkId, setTpkId] = useState('');
   const [pvkId, setPvkId] = useState('');
   const [pinBlock, setPinBlock] = useState('');
-  const [pan, setPan] = useState('');
+  const [pan, setPan] = useState('400000123456');
   const [checkLen, setCheckLen] = useState('0');
   const [dectab, setDectab] = useState('');
   const [offset, setOffset] = useState('');
@@ -190,9 +190,9 @@ function PinVerifyTab({ symKeys }: { symKeys: KeySummary[] }) {
 function CvvGenTab({ symKeys }: { symKeys: KeySummary[] }) {
   const [cvkaId, setCvkaId] = useState('');
   const [cvkbId, setCvkbId] = useState('');
-  const [pan, setPan] = useState('');
-  const [expDate, setExpDate] = useState('');
-  const [svcCode, setSvcCode] = useState('101');
+  const [pan, setPan] = useState('4000001234560000');
+  const [expDate, setExpDate] = useState('2512');
+  const [svcCode, setSvcCode] = useState('201');
   const [result, setResult] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -242,9 +242,9 @@ function CvvGenTab({ symKeys }: { symKeys: KeySummary[] }) {
 function CvvVerifyTab({ symKeys }: { symKeys: KeySummary[] }) {
   const [cvkaId, setCvkaId] = useState('');
   const [cvkbId, setCvkbId] = useState('');
-  const [pan, setPan] = useState('');
-  const [expDate, setExpDate] = useState('');
-  const [svcCode, setSvcCode] = useState('101');
+  const [pan, setPan] = useState('4000001234560000');
+  const [expDate, setExpDate] = useState('2512');
+  const [svcCode, setSvcCode] = useState('201');
   const [cvv, setCvv] = useState('');
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -300,7 +300,7 @@ function ArqcTab({ symKeys }: { symKeys: KeySummary[] }) {
   const [arqc, setArqc] = useState('');
   const [transData, setTransData] = useState('');
   const [arc, setArc] = useState('3030');
-  const [pan, setPan] = useState('');
+  const [pan, setPan] = useState('400000123456');
   const [panSeq, setPanSeq] = useState('00');
   const [result, setResult] = useState('');
   const [busy, setBusy] = useState(false);
@@ -358,7 +358,7 @@ function ArqcTab({ symKeys }: { symKeys: KeySummary[] }) {
 // ── PIN Generate (JA/JB) ─────────────────────────────────────────────────
 
 function PinGenTab() {
-  const [pan, setPan] = useState('');
+  const [pan, setPan] = useState('4000001234560000');
   const [pinLen, setPinLen] = useState('04');
   const [result, setResult] = useState<{ pinLen: string; pinUnderLmk: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -400,7 +400,7 @@ function PinGenTab() {
 
 function PvvGenTab({ symKeys }: { symKeys: KeySummary[] }) {
   const [pvkId, setPvkId] = useState('');
-  const [pan, setPan] = useState('');
+  const [pan, setPan] = useState('4000001234560000');
   const [pvki, setPvki] = useState('1');
   const [pinUnderLmk, setPinUnderLmk] = useState('');
   const [result, setResult] = useState('');
@@ -1069,7 +1069,7 @@ function ArqcCvnTab({ symKeys, defaultMode, title, desc, useEmv4 = false }: {
   const [arqc, setArqc] = useState('');
   const [transData, setTransData] = useState('');
   const [arc, setArc] = useState('3030');
-  const [pan, setPan] = useState('');
+  const [pan, setPan] = useState('400000123456');
   const [panSeq, setPanSeq] = useState('00');
   const [result, setResult] = useState('');
   const [busy, setBusy] = useState(false);

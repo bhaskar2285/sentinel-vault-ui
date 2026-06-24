@@ -16,6 +16,7 @@ import AdminRBAC from '@/pages/AdminRBAC';
 import AdminBanks from '@/pages/AdminBanks';
 import KeyBlock from '@/pages/KeyBlock';
 import EmvOps from '@/pages/EmvOps';
+import DataIntegrity from '@/pages/DataIntegrity';
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/emv" element={<EmvOps />} />
         <Route path="/keys/:keyId" element={<KeyDetail />} />
         <Route path="/crypto" element={<CryptoPlayground />} />
+        <Route path="/integrity" element={<DataIntegrity />} />
         <Route path="/wizard" element={<CryptoWizard />} />
         <Route path="/pools" element={<Pools />} />
         <Route path="/audit" element={<Audit />} />
