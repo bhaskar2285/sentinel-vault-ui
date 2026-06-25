@@ -1005,7 +1005,7 @@ function CvvVariantTab({ symKeys, initSvc, label, desc, cmdNote }: {
   const [cvkbId, setCvkbId] = useState('');
   const [pan, setPan] = useState('');
   const [expDate, setExpDate] = useState('');
-  const [svcCode] = useState(initSvc);
+  const [svcCode, setSvcCode] = useState(initSvc);
   const [cvv, setCvv] = useState('');
   const [mode, setMode] = useState<'gen'|'verify'>('gen');
   const [result, setResult] = useState<string | { ok: boolean; msg: string } | null>(null);
@@ -1048,7 +1048,10 @@ function CvvVariantTab({ symKeys, initSvc, label, desc, cmdNote }: {
         <div className="col-span-2"><Field label="PAN (full)" id={`${initSvc}-pan`} value={pan} onChange={setPan} placeholder="4111111111111111" /></div>
         <Field label="Expiry (YYMM)" id={`${initSvc}-exp`} value={expDate} onChange={setExpDate} placeholder="2512" />
       </div>
-      {mode === 'verify' && <Field label={`${label} to verify (3 digits)`} id={`${initSvc}-val`} value={cvv} onChange={setCvv} placeholder="123" />}
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Service Code (3N)" id={`${initSvc}-svc`} value={svcCode} onChange={setSvcCode} placeholder={initSvc} hint="101=CVV · 000=CVV2 · 999=iCVV · 030=DCVC3 · 201=track2" />
+        {mode === 'verify' && <Field label={`${label} to verify (3 digits)`} id={`${initSvc}-val`} value={cvv} onChange={setCvv} placeholder="123" />}
+      </div>
       <Button onClick={run} disabled={busy || !cvkaId} className="w-full sm:w-auto">
         {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{busy ? 'Processing…' : `${mode === 'gen' ? 'Generate' : 'Verify'} ${label}`}
       </Button>

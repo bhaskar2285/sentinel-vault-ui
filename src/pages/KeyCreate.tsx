@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { KeyRound, Loader2 } from 'lucide-react';
 import { keysApi } from '@/api/keys';
@@ -24,6 +25,7 @@ const USAGE_OPTS = [
 
 export default function KeyCreate() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   const [label, setLabel] = useState('');
   const [bits, setBits] = useState('2048');
   const [keyType, setKeyType] = useState('2');
@@ -35,6 +37,7 @@ export default function KeyCreate() {
     try {
       const r = await keysApi.generateRsa({ label, modulusBits: Number(bits), keyType });
       if (r.status === 'OK') {
+        qc.invalidateQueries({ queryKey: ['keys'] });
         toast.success(`Key created · ${r.keyId.slice(0, 8)}…`);
         nav(`/keys/${r.keyId}`);
       } else {

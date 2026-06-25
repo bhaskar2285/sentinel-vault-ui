@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Download, Loader2 } from 'lucide-react';
 import { keysApi } from '@/api/keys';
@@ -28,6 +29,7 @@ const HASH_IDS = [
 
 export default function KeyImport() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   const [label, setLabel] = useState('');
   const [keyType, setKeyType] = useState('ZPK');
   const [wrappingPublicKey, setWpk] = useState('');
@@ -53,6 +55,7 @@ export default function KeyImport() {
         usage,
       });
       if (r.status === 'OK') {
+        qc.invalidateQueries({ queryKey: ['keys'] });
         toast.success(`Imported · ${r.keyId.slice(0, 8)}…`);
         nav(`/keys/${r.keyId}`);
       } else {

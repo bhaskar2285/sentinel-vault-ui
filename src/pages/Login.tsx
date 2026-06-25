@@ -24,6 +24,10 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [advOpen, setAdvOpen] = useState(false);
   const [pasteToken, setPasteToken] = useState('');
+  // Dev/SSO-only escape hatch: paste an already-issued session token to skip the
+  // login form. Hidden by default so it never shows in a secured/prod deployment;
+  // enable for local dev or an xenticate-auth SSO bridge with VITE_ALLOW_TOKEN_PASTE=true.
+  const allowTokenPaste = import.meta.env.VITE_ALLOW_TOKEN_PASTE === 'true';
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,6 +173,7 @@ export default function Login() {
             </Button>
           </form>
 
+          {allowTokenPaste && (
           <Collapsible open={advOpen} onOpenChange={setAdvOpen} className="border-t pt-4">
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
@@ -192,6 +197,7 @@ export default function Login() {
               </p>
             </CollapsibleContent>
           </Collapsible>
+          )}
 
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <ShieldCheck className="h-3 w-3" />

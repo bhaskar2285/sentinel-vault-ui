@@ -19,8 +19,15 @@ export interface KeySummary {
 }
 
 export const keysApi = {
-  list: (params: { label?: string; keyType?: string } = {}) =>
-    api.get<KeySummary[]>('/keys', { params }).then((r) => r.data),
+  // bankScope: a recId scopes to that bank (+ global keys); 'ALL' returns every
+  // bank (admin) by omitting X-Bank-Id; omitted = use the session's active bank.
+  list: (params: { label?: string; keyType?: string; bankScope?: number | 'ALL' } = {}) => {
+    const { bankScope, ...query } = params;
+    const cfg: Record<string, unknown> = { params: query };
+    if (bankScope === 'ALL') cfg.bankScope = 'all';
+    else if (typeof bankScope === 'number') cfg.bankScope = bankScope;
+    return api.get<KeySummary[]>('/keys', cfg).then((r) => r.data);
+  },
 
   get: (id: string) => api.get(`/keys/${id}`).then((r) => r.data),
 

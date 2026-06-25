@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { KeyRound, Loader2, AlertCircle } from 'lucide-react';
 import { keysApi, type KeySummary } from '@/api/keys';
@@ -43,6 +43,7 @@ const SCHEMES = [
 
 export default function KeyCreateSym() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   const [label, setLabel] = useState('');
   const [keyType, setKeyType] = useState('ZPK');
   const [keyScheme, setScheme] = useState('U');
@@ -68,6 +69,7 @@ export default function KeyCreateSym() {
         outScheme: mode === '1' ? outScheme : undefined,
       });
       if (r.status === 'OK') {
+        qc.invalidateQueries({ queryKey: ['keys'] });   // refresh every key dropdown/list
         toast.success(`Key created · KCV ${r.kcv}`);
         nav(`/keys/${r.keyId}`);
       } else {
