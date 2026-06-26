@@ -20,16 +20,16 @@ const MODES = [
   { v: '02', label: 'CFB', desc: 'IV required' },
 ];
 
-const SYM_TYPES = new Set([
-  'ZPK','ZMK','TMK','KBPK','BDK','DATA','AES','3DES',
-  '000','001','002','003','008','009','00A','00B','00C','00D','00E','00F',
-  'R','S','H','U','T',
+// M0/M2 (Encrypt/Decrypt Data) require a DATA-encryption key (TR-31 usage D0/B0).
+// PIN- and key-encryption keys (ZPK, ZMK, TMK, KBPK, BDK, PVK, CVK, …) are rejected
+// by the HSM with errCode A6 "Invalid key usage", so they are excluded here.
+const DATA_ENC_TYPES = new Set([
+  'DATA','ZEK','DEK','TEK',
+  '00A','00B','00C',
 ]);
 
 function symFilter(keys: KeySummary[]) {
-  return keys.filter(
-    (k) => SYM_TYPES.has(k.keyType) || (k.keyType?.length === 3 && k.keyType !== 'RSA')
-  );
+  return keys.filter((k) => DATA_ENC_TYPES.has(k.keyType));
 }
 
 /** Block size in hex chars: AES=32, everything else (3DES/DES)=16 */
@@ -139,7 +139,7 @@ function DecryptPanel({ symKeys }: { symKeys: KeySummary[] }) {
       <CardHeader>
         <CardTitle className="text-base">Parameters</CardTitle>
         <CardDescription>
-          Key must be a stored symmetric key (ZPK, ZMK, TMK, KBPK, BDK, DATA).
+          Key must be a DATA-encryption key (DATA / ZEK / DEK / TEK). PIN- and key-encryption keys (ZPK, ZMK, TMK, KBPK, BDK) cannot encrypt data — the HSM rejects them with "Invalid key usage".
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -248,7 +248,7 @@ function EncryptPanel({ symKeys }: { symKeys: KeySummary[] }) {
       <CardHeader>
         <CardTitle className="text-base">Parameters</CardTitle>
         <CardDescription>
-          Key must be a stored symmetric key (ZPK, ZMK, TMK, KBPK, BDK, DATA).
+          Key must be a DATA-encryption key (DATA / ZEK / DEK / TEK). PIN- and key-encryption keys (ZPK, ZMK, TMK, KBPK, BDK) cannot encrypt data — the HSM rejects them with "Invalid key usage".
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">

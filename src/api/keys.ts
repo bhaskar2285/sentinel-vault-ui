@@ -78,3 +78,22 @@ export const keysApi = {
     }
   ) => api.post(`/keys/${id}/export`, body).then((r) => r.data),
 };
+
+/** Key-component ceremony (Thales A2/A4 + BU). Components are LMK-encrypted (host-secure). */
+export const componentsApi = {
+  // A2 — HSM generates a random component encrypted under LMK (plaintext is printed at the HSM).
+  generate: (body: { scheme?: string; keyType?: string }) =>
+    api.post<{ errCode: string; scheme: string; component: string; kcv?: string }>(
+      '/crypto/key/component/generate', body,
+    ).then((r) => r.data),
+
+  // BU — KCV of a raw (unstored) LMK-encrypted component.
+  checkValueRaw: (body: { keyHex: string; scheme: string; keyType?: string }) =>
+    api.post<{ errCode: string; kcv?: string }>('/crypto/key/check-value', body).then((r) => r.data),
+
+  // A4 — XOR the encrypted components into one key under the LMK; persists when label is set.
+  form: (body: { keyType: string; scheme: string; components: string[]; label?: string; usage?: string }) =>
+    api.post<{ errCode: string; scheme: string; keyUnderLmk: string; kcv: string; keyId?: string }>(
+      '/crypto/key/form-from-components', body,
+    ).then((r) => r.data),
+};

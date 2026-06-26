@@ -15,6 +15,7 @@ import {
   Building2,
   Blocks,
   CreditCard,
+  Combine,
 } from 'lucide-react';
 import BankSelector from './BankSelector';
 import { useSession } from '@/store/session';
@@ -44,6 +45,7 @@ const navSections: NavSection[] = [
       { to: '/keys/new-sym', label: 'Generate Sym', code: 'A0/A1', icon: PlusCircle },
       { to: '/keys/import',  label: 'Import Key',   code: 'GI/GJ', icon: Download },
       { to: '/keys/block',   label: 'Key Block',    code: 'B4/B5', icon: Blocks },
+      { to: '/keys/components', label: 'Form Components', code: 'A2/A4', icon: Combine },
     ],
   },
   {
