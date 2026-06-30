@@ -97,3 +97,28 @@ export const componentsApi = {
       '/crypto/key/form-from-components', body,
     ).then((r) => r.data),
 };
+
+// Luna (PKCS#11) — ZMK->DEK custodian ceremony + data crypto. Separate from the Thales path.
+export const lunaApi = {
+  // Form a ZMK token object from the XOR of clear custodian components.
+  formZmk: (body: { components: string[]; algorithm?: string; label: string }) =>
+    api.post<{ keyId?: string; kcv?: string; errCode: string; errText?: string }>(
+      '/luna/zmk/form', body,
+    ).then((r) => r.data),
+
+  // Register a DEK delivered already wrapped under the ZMK (unwrapped inside the HSM to validate).
+  importDek: (body: { zmkKeyId: string; dekBlob: string; wrapMech?: string; algorithm?: string; label: string }) =>
+    api.post<{ keyId?: string; kcv?: string; errCode: string; errText?: string }>(
+      '/luna/dek/import', body,
+    ).then((r) => r.data),
+
+  encrypt: (body: { keyId: string; data: string; transformation?: string; iv?: string }) =>
+    api.post<{ ciphertext?: string; iv?: string; errCode: string; errText?: string }>(
+      '/luna/data/encrypt', body,
+    ).then((r) => r.data),
+
+  decrypt: (body: { keyId: string; data: string; transformation?: string; iv?: string }) =>
+    api.post<{ plaintext?: string; errCode: string; errText?: string }>(
+      '/luna/data/decrypt', body,
+    ).then((r) => r.data),
+};

@@ -16,6 +16,9 @@ import AdminRBAC from '@/pages/AdminRBAC';
 import AdminBanks from '@/pages/AdminBanks';
 import KeyBlock from '@/pages/KeyBlock';
 import FormComponents from '@/pages/FormComponents';
+import ZmkCeremony from '@/pages/ZmkCeremony';
+import ImportDek from '@/pages/ImportDek';
+import LunaCrypto from '@/pages/LunaCrypto';
 import EmvOps from '@/pages/EmvOps';
 import DataIntegrity from '@/pages/DataIntegrity';
 
@@ -37,6 +40,9 @@ export default function App() {
         <Route path="/keys/import" element={<KeyImport />} />
         <Route path="/keys/block" element={<KeyBlock />} />
         <Route path="/keys/components" element={<FormComponents />} />
+        <Route path="/luna/zmk" element={<ZmkCeremony />} />
+        <Route path="/luna/dek" element={<ImportDek />} />
+        <Route path="/luna/crypto" element={<LunaCrypto />} />
         <Route path="/emv" element={<EmvOps />} />
         <Route path="/keys/:keyId" element={<KeyDetail />} />
         <Route path="/crypto" element={<CryptoPlayground />} />

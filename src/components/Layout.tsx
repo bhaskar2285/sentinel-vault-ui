@@ -49,6 +49,14 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    label: 'Luna HSM',
+    items: [
+      { to: '/luna/zmk',    label: 'ZMK Ceremony', code: 'PKCS#11', icon: KeyRound },
+      { to: '/luna/dek',    label: 'Import DEK',   code: 'PKCS#11', icon: Download },
+      { to: '/luna/crypto', label: 'Encrypt/Decrypt', code: 'PKCS#11', icon: Lock },
+    ],
+  },
+  {
     label: 'Crypto',
     items: [
       { to: '/wizard',  label: 'Walkthrough', code: 'CHAIN', icon: Play },
