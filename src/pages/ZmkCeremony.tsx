@@ -12,6 +12,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
 import { lunaApi } from '@/api/keys';
+import HexLen from '@/components/HexLen';
 
 const ALGOS = [
   { v: 'DESede', label: '3DES (double-length, 16-byte components)' },
@@ -23,12 +24,26 @@ export default function ZmkCeremony() {
   const [algorithm, setAlgorithm] = useState('DESede');
   const [label, setLabel] = useState('');
   const [comps, setComps] = useState<string[]>(['', '', '']);
+  const [compKcvs, setCompKcvs] = useState<Record<number, string>>({});
   const [forming, setForming] = useState(false);
   const [result, setResult] = useState<{ kcv?: string; keyId?: string } | null>(null);
 
-  const setComp = (i: number, v: string) => setComps((cs) => cs.map((c, idx) => (idx === i ? v : c)));
+  const setComp = (i: number, v: string) => {
+    setComps((cs) => cs.map((c, idx) => (idx === i ? v : c)));
+    setCompKcvs((m) => { const n = { ...m }; delete n[i]; return n; }); // stale until recomputed
+  };
   const addComp = () => comps.length < 9 && setComps((cs) => [...cs, '']);
   const delComp = (i: number) => comps.length > 2 && setComps((cs) => cs.filter((_, idx) => idx !== i));
+
+  // Per-component KCV — computed by the HSM (encrypt a zero block under the component) on blur.
+  const kcvForComp = async (i: number, value: string) => {
+    const v = value.trim().replace(/\s+/g, '');
+    if (!/^[0-9a-fA-F]+$/.test(v) || v.length % 2 !== 0) return;
+    try {
+      const r = await lunaApi.kcv({ valueHex: v, algorithm });
+      if (r.errCode === '00' && r.kcv) setCompKcvs((m) => ({ ...m, [i]: r.kcv! }));
+    } catch { /* ignore — KCV is advisory */ }
+  };
 
   const form = async () => {
     const values = comps.map((c) => c.trim()).filter(Boolean);
@@ -90,18 +105,27 @@ export default function ZmkCeremony() {
               </Button>
             </div>
             {comps.map((c, i) => (
-              <div key={i} className="flex gap-2 items-center">
-                <Input
-                  value={c}
-                  onChange={(e) => setComp(i, e.target.value)}
-                  placeholder={`Custodian ${i + 1} — clear hex component`}
-                  className="font-mono text-xs"
-                />
-                {comps.length > 2 && (
-                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => delComp(i)}>
-                    <Minus className="h-3.5 w-3.5" />
-                  </Button>
-                )}
+              <div key={i} className="space-y-1">
+                <div className="flex gap-2 items-center">
+                  <Input
+                    value={c}
+                    onChange={(e) => setComp(i, e.target.value)}
+                    onBlur={(e) => kcvForComp(i, e.target.value)}
+                    placeholder={`Custodian ${i + 1} — clear hex component`}
+                    className="font-mono text-xs"
+                  />
+                  {comps.length > 2 && (
+                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => delComp(i)}>
+                      <Minus className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 pl-1">
+                  <HexLen value={c} />
+                  {compKcvs[i] && (
+                    <Badge variant="secondary" className="text-[10px] font-mono">KCV {compKcvs[i]}</Badge>
+                  )}
+                </div>
               </div>
             ))}
           </div>

@@ -19,6 +19,7 @@ import FormComponents from '@/pages/FormComponents';
 import ZmkCeremony from '@/pages/ZmkCeremony';
 import ImportDek from '@/pages/ImportDek';
 import LunaCrypto from '@/pages/LunaCrypto';
+import LunaTr31 from '@/pages/LunaTr31';
 import EmvOps from '@/pages/EmvOps';
 import DataIntegrity from '@/pages/DataIntegrity';
 
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/luna/zmk" element={<ZmkCeremony />} />
         <Route path="/luna/dek" element={<ImportDek />} />
         <Route path="/luna/crypto" element={<LunaCrypto />} />
+        <Route path="/luna/tr31" element={<LunaTr31 />} />
         <Route path="/emv" element={<EmvOps />} />
         <Route path="/keys/:keyId" element={<KeyDetail />} />
         <Route path="/crypto" element={<CryptoPlayground />} />

@@ -20,8 +20,13 @@ export default function LunaCrypto() {
   const [out, setOut] = useState<{ kind: 'ciphertext' | 'plaintext'; value: string } | null>(null);
 
   useEffect(() => {
-    keysApi.list({ keyType: 'DATA', bankScope: 'ALL' })
-      .then((ks) => setDeks(ks.filter((k) => k.vendorOrigin === 'luna')))
+    // Luna DEKs: ZMK-wrapped (keyType DATA) + TR-31-wrapped (keyType TR31_BLOCK), both usable for crypto.
+    Promise.all([
+      keysApi.list({ keyType: 'DATA', bankScope: 'ALL' }),
+      keysApi.list({ keyType: 'TR31_BLOCK', bankScope: 'ALL' }),
+    ])
+      .then(([data, blocks]) =>
+        setDeks([...data, ...blocks].filter((k) => k.vendorOrigin === 'luna')))
       .catch(() => {});
   }, []);
 
@@ -29,11 +34,14 @@ export default function LunaCrypto() {
     if (!keyId) return toast.error('Select a Luna DEK');
     const data = input.trim().replace(/\s+/g, '');
     if (!/^[0-9a-fA-F]+$/.test(data) || data.length % 2 !== 0) return toast.error('Enter even-length hex');
+    // transformation follows the selected key's algorithm (AES vs 3DES)
+    const sel = deks.find((k) => k.keyId === keyId);
+    const transformation = sel?.algo === 'AES' ? 'AES/ECB/NoPadding' : 'DESede/ECB/NoPadding';
     setBusy(true); setOut(null);
     try {
       const r = mode === 'encrypt'
-        ? await lunaApi.encrypt({ keyId, data })
-        : await lunaApi.decrypt({ keyId, data });
+        ? await lunaApi.encrypt({ keyId, data, transformation })
+        : await lunaApi.decrypt({ keyId, data, transformation });
       if (r.errCode === '00') {
         const value = (mode === 'encrypt' ? (r as any).ciphertext : (r as any).plaintext) ?? '';
         setOut({ kind: mode === 'encrypt' ? 'ciphertext' : 'plaintext', value });
@@ -68,7 +76,8 @@ export default function LunaCrypto() {
               <SelectContent>
                 {deks.map((k) => (
                   <SelectItem key={k.keyId} value={k.keyId}>
-                    {k.label} {k.kcv ? `(KCV ${k.kcv})` : ''}
+                    {k.label} · {k.keyType === 'TR31_BLOCK' ? `TR-31/${k.algo}` : 'ZMK-wrapped'}
+                    {k.kcv ? ` (KCV ${k.kcv})` : ''}
                   </SelectItem>
                 ))}
               </SelectContent>

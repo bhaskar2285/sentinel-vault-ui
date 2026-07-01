@@ -16,6 +16,7 @@ import {
   Blocks,
   CreditCard,
   Combine,
+  Package,
 } from 'lucide-react';
 import BankSelector from './BankSelector';
 import { useSession } from '@/store/session';
@@ -54,6 +55,7 @@ const navSections: NavSection[] = [
       { to: '/luna/zmk',    label: 'ZMK Ceremony', code: 'PKCS#11', icon: KeyRound },
       { to: '/luna/dek',    label: 'Import DEK',   code: 'PKCS#11', icon: Download },
       { to: '/luna/crypto', label: 'Encrypt/Decrypt', code: 'PKCS#11', icon: Lock },
+      { to: '/luna/tr31',   label: 'TR-31 Key Blocks', code: 'PKCS#11', icon: Package },
     ],
   },
   {

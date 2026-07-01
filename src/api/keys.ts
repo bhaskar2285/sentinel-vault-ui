@@ -121,4 +121,44 @@ export const lunaApi = {
     api.post<{ plaintext?: string; errCode: string; errText?: string }>(
       '/luna/data/decrypt', body,
     ).then((r) => r.data),
+
+  // Generate a Key Block Protection Key (version D = AES, B = 3DES).
+  generateKbpk: (body: { version: string; keyBits: number; label: string }) =>
+    api.post<{ keyId?: string; kcv?: string; errCode: string; errText?: string }>(
+      '/luna/kbpk/generate', body,
+    ).then((r) => r.data),
+
+  // Wrap a clear working key into a TR-31 key block under a KBPK (always stored in the vault).
+  tr31Wrap: (body: {
+    kbpkKeyId: string; workingKeyHex: string; keyAlgorithm?: string; label?: string;
+    keyUsage?: string; modeOfUse?: string; exportability?: string;
+  }) =>
+    api.post<{ tr31Block?: string; header?: string; version?: string; keyId?: string; errCode: string; errText?: string }>(
+      '/luna/tr31/wrap', body,
+    ).then((r) => r.data),
+
+  // Unwrap (and authenticate) a TR-31 key block under a KBPK.
+  tr31Unwrap: (body: { kbpkKeyId: string; tr31Block: string }) =>
+    api.post<{ workingKeyHex?: string; header?: string; version?: string; errCode: string; errText?: string }>(
+      '/luna/tr31/unwrap', body,
+    ).then((r) => r.data),
+
+  // Stored TR-31 key blocks (for unwrap / crypto dropdowns).
+  listTr31Blocks: () =>
+    api.get<Array<{
+      keyId: string; label: string; tr31Block: string; header: string; version: string;
+      keyAlgorithm: string; keyBits: number; kbpkKeyId: string; kbpkLabel: string; createdAt?: string;
+    }>>('/luna/tr31/blocks').then((r) => r.data),
+
+  // KCV of a clear key value (e.g. a ZMK custodian component).
+  kcv: (body: { valueHex: string; algorithm?: string }) =>
+    api.post<{ kcv?: string; errCode: string; errText?: string }>(
+      '/luna/kcv', body,
+    ).then((r) => r.data),
+
+  // Luna-native export: TR-31-wrap a stored Luna key under a transport KBPK (replaces A8/A9).
+  exportKey: (body: { keyId: string; transportKbpkId: string; keyUsage?: string }) =>
+    api.post<{ tr31Block?: string; keyId?: string; version?: string; errCode: string; errText?: string }>(
+      '/luna/export', body,
+    ).then((r) => r.data),
 };

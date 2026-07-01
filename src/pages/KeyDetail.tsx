@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, KeyRound, Download, Copy, Loader2, Package } from 'lucide-react';
-import { keysApi, type KeySummary } from '@/api/keys';
+import { keysApi, lunaApi, type KeySummary } from '@/api/keys';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -92,6 +92,29 @@ export default function KeyDetail() {
     }
   };
 
+  // Luna keys must NOT export via the Thales A8/A9 path — use the Luna TR-31 export instead.
+  const isLuna = data?.vendorOrigin === 'luna';
+  // Only a KBPK has an exportable clear; a ZMK is a partition token object and a DEK is
+  // stored ZMK-wrapped, so neither can be software-TR-31-exported.
+  const isLunaExportable = isLuna && data?.keyType === 'KBPK';
+  const [transportKbpk, setTransportKbpk] = useState<string>('');
+  const lunaKbpks = (all.data ?? []).filter(
+    (k) => k.keyType === 'KBPK' && k.vendorOrigin === 'luna' && k.keyId !== keyId
+  );
+
+  const lunaExport = async () => {
+    if (!keyId) return;
+    if (!transportKbpk) { toast.error('Pick a transport KBPK'); return; }
+    setBusy(true);
+    try {
+      const r = await lunaApi.exportKey({ keyId, transportKbpkId: transportKbpk });
+      if (r.errCode === '00') { setExported(r.tr31Block ?? ''); toast.success('Exported as a TR-31 key block (Luna)'); }
+      else toast.error(`${r.errCode}: ${r.errText}`);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? e?.message ?? 'Failed');
+    } finally { setBusy(false); }
+  };
+
   const copy = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success('Copied');
@@ -150,7 +173,7 @@ export default function KeyDetail() {
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="export">Export <Badge variant="outline" className="ml-2 font-mono text-[9px] px-1.5">A8/A9</Badge></TabsTrigger>
+          <TabsTrigger value="export">Export <Badge variant="outline" className="ml-2 font-mono text-[9px] px-1.5">{isLuna ? 'PKCS#11' : 'A8/A9'}</Badge></TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -213,6 +236,7 @@ export default function KeyDetail() {
         </TabsContent>
 
         <TabsContent value="export" className="space-y-4">
+          {!isLuna && (
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Wrap & export</CardTitle>
@@ -269,26 +293,81 @@ export default function KeyDetail() {
                 <Download className="mr-2 h-4 w-4" />
                 {busy ? 'Exporting…' : 'Export'}
               </Button>
-
-              {exported && (
-                <div className="space-y-2 pt-2">
-                  <Separator />
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <Package className="h-4 w-4 text-success" />
-                      Exported key block
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => copy(exported)}>
-                      <Copy className="h-3.5 w-3.5 mr-1.5" /> Copy
-                    </Button>
-                  </div>
-                  <pre className="bg-muted/40 rounded-md p-3 font-mono text-[11px] leading-[1.5] whitespace-pre-wrap break-all">
-                    {exported}
-                  </pre>
-                </div>
-              )}
             </CardContent>
           </Card>
+          )}
+
+          {isLuna && !isLunaExportable && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Export not available</CardTitle>
+              <CardDescription>
+                A Luna <span className="font-mono">{data?.keyType}</span> cannot be exported as a TR-31
+                key block: a ZMK lives only inside the partition and a DEK is stored ZMK-wrapped, so
+                neither has a clear value to wrap. Only a <strong>KBPK</strong> is exportable this way.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          )}
+
+          {isLunaExportable && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Luna export · TR-31 key block</CardTitle>
+              <CardDescription>
+                This is a Luna (PKCS#11) key — it is exported as an X9.143 / TR-31 key block under a
+                transport KBPK, not via the Thales A8/A9 path.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Transport KBPK</Label>
+                <Select value={transportKbpk} onValueChange={setTransportKbpk}>
+                  <SelectTrigger><SelectValue placeholder="— pick a Luna KBPK —" /></SelectTrigger>
+                  <SelectContent>
+                    {lunaKbpks.map((k) => (
+                      <SelectItem key={k.keyId} value={k.keyId}>
+                        {k.label}
+                        <Badge variant="outline" className="ml-2 font-mono text-[10px]">{k.keyLengthBits}-bit</Badge>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {lunaKbpks.length === 0 && (
+                <Alert variant="default" className="border-warning/50 bg-warning/5">
+                  <AlertDescription className="text-xs">
+                    No Luna KBPK in vault. Generate one on the TR-31 Key Blocks page first.
+                  </AlertDescription>
+                </Alert>
+              )}
+              <Button onClick={lunaExport} disabled={busy} className="w-full sm:w-auto">
+                {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Download className="mr-2 h-4 w-4" />
+                {busy ? 'Exporting…' : 'Export as TR-31'}
+              </Button>
+            </CardContent>
+          </Card>
+          )}
+
+          {exported && (
+            <Card>
+              <CardContent className="space-y-2 pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Package className="h-4 w-4 text-success" />
+                    Exported key block
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => copy(exported)}>
+                    <Copy className="h-3.5 w-3.5 mr-1.5" /> Copy
+                  </Button>
+                </div>
+                <pre className="bg-muted/40 rounded-md p-3 font-mono text-[11px] leading-[1.5] whitespace-pre-wrap break-all">
+                  {exported}
+                </pre>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

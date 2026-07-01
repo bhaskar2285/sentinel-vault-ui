@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'sonner';
 import { useSession } from '@/store/session';
 
 export const api = axios.create({
@@ -26,14 +27,22 @@ api.interceptors.request.use((cfg) => {
   return cfg;
 });
 
+// Soft session-expiry handling: on a 401 we toast once and clear the session.
+// Clearing the session re-renders <RequireAuth>, which navigates to /login WITHOUT a
+// full page reload (so the toast survives) and records the current location in router
+// state (`from`) so Login can return the user where they were. Parallel 401s only
+// toast once; any successful response re-arms the notice.
+let sessionExpiredNotified = false;
 api.interceptors.response.use(
-  (r) => r,
+  (r) => { sessionExpiredNotified = false; return r; },
   (err) => {
     if (err?.response?.status === 401) {
-      useSession.getState().clear();
-      if (!window.location.pathname.startsWith('/login')) {
-        window.location.assign('/login');
+      const { jwt, clear } = useSession.getState();
+      if (jwt && !sessionExpiredNotified) {
+        sessionExpiredNotified = true;
+        toast.error('Session expired — please sign in again.');
       }
+      clear();
     }
     return Promise.reject(err);
   }

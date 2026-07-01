@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Lock, ShieldCheck, AlertCircle, ChevronDown, Loader2 } from 'lucide-react';
 import { authApi } from '@/api/auth';
 import { api } from '@/api/client';
@@ -16,7 +16,13 @@ import { cn } from '@/lib/utils';
 
 export default function Login() {
   const nav = useNavigate();
+  const loc = useLocation();
   const setSession = useSession((s) => s.setSession);
+  // After login, return to where the session expired (set by <RequireAuth>), else /keys.
+  const returnTo = (() => {
+    const from = (loc.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+    return from && from !== '/login' ? from : '/keys';
+  })();
 
   const [loginname, setLoginname] = useState('');
   const [password, setPassword] = useState('');
@@ -57,7 +63,7 @@ export default function Login() {
         branchId: d.branchId,
         roles: d.roles,
       });
-      nav('/keys', { replace: true });
+      nav(returnTo, { replace: true });
     } catch (err: any) {
       setError(err?.response?.data?.reason ?? err?.message ?? 'Network error');
     } finally {
@@ -69,7 +75,7 @@ export default function Login() {
     const t = pasteToken.trim();
     if (!t) return;
     setSession(t, { staffId: 0, loginname: 'dev', bankCode: 'DEV' });
-    nav('/keys', { replace: true });
+    nav(returnTo, { replace: true });
   };
 
   return (
